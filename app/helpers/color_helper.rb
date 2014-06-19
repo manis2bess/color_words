@@ -7,9 +7,9 @@ module ColorHelper
     puts "Buscar  FOTO"
 
     FlickRaw.api_key="d87f457e6018a2dabe55fae4dd9f3adc"
-    FlickRaw.shared_secret="6f33c141e4bfc959 "
+    FlickRaw.shared_secret="6f33c141e4bfc959"
 
-		list   = flickr.photos.search(:text => word)
+		list   = flickr.photos.search(:sort => "relevance", :text => word)
 
     puts list.to_json
 
@@ -42,11 +42,59 @@ module ColorHelper
       model = Photo.new
       model.id = id
       model.url = url
-      model.color = p[0,0].to_s(16)
+      model.color = montecarlo(p).to_s(16)
       model.save
     end
 
+    puts model.to_json
+
     return model
+  end
+  def montecarlo(photo)
+    dic = {}
+    (0..999).each do |i| 
+      x = rand(photo.width).floor
+      y = rand(photo.height).floor
+      c = photo[x,y]
+
+#      blue = c % 256
+#      c = (c - blue) / 256
+#      green = c % 256
+#      c = (c - green) / 256
+#      red = c
+      a =  c & 255
+      blue = (c >> 8) & 255
+      green = (c >> 16) & 255
+      red =   (c >> 24) & 255
+
+      puts "r = #{red} - g = #{green} - b = #{blue}"
+
+      precision = 20
+
+      blue = (blue.to_f/precision).floor()*precision
+      green = (green.to_f/precision).floor()*precision
+      red = (red.to_f/precision).floor()*precision
+
+      #c = (red*(256^2))+(green*256)+blue
+      rgb = red
+      rgb = (rgb << 8) + green
+      rgb = (rgb << 8) + blue
+      
+      dic[rgb] ||= 0
+      dic[rgb] = dic[rgb] + 1
+
+      puts "c = #{c} - r = #{red} - g = #{green} - b = #{blue} - rgb = #{rgb}"
+    end
+
+    c = dic.sort_by {|k,v| v }.last
+
+    puts dic
+
+    puts "------------adasd---------"
+    puts c
+
+    return c[0]
+
   end
 
 end

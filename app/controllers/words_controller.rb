@@ -5,7 +5,7 @@ class WordsController < ApplicationController
 	def color
 		word = params[:word]
 		w = Word.find_by(word: word)
-		
+		w = nil
 		if w.nil?
 			w = Word.new
 			w.word = word
@@ -16,6 +16,25 @@ class WordsController < ApplicationController
 		@data = {}
 		@data[:word] = word
 		@data[:w] = w
+
+		
+		respond_to do |format|
+  			#format.json
+        	format.html { render json: {:data => @data, :status => 200}}
+        
+	        if params[:callback]
+	     	    format.js { render :json => {:data => @data, :status => 200}, :callback => params[:callback] }
+	   		else
+	   				format.json { render json: {:data => @data, :status => 200}}
+	   		end
+		end
+	end
+
+	def reset
+		Word.all.delete
+		Photo.all.delete
+
+		@data = {}
 
 		
 		respond_to do |format|

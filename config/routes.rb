@@ -1,5 +1,6 @@
 ColorWords::Application.routes.draw do
     get "words/color"
+    get "words/reset"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
