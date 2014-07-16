@@ -1,6 +1,9 @@
 ColorWords::Application.routes.draw do
     get "words/color"
     get "words/reset"
+    get "words/country"
+    get "words/world"
+    get "words/country_iso"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

@@ -3,33 +3,83 @@ module ColorHelper
   require 'mini_magick'
 	require 'chunky_png'
 
+  def get_words(words)
+    ws = []
+    words.each do |q|
+      q = normalize(q)
+      q.split(" ").each do |w|
+        ws << find_word(w)
+      end
+    end
+
+    return ws.compact
+  end
+
+  def find_word(word)
+    w = Word.find_by(word: word)
+    
+    if w.nil?
+      color = find_color(word)
+      w = Word.new
+      w.word = word
+      w.color = color
+      w.save
+    end
+
+    if w.color.nil?
+      return nil
+    end
+
+    return w
+  end
+
 	def find_color(word)
-    puts "Buscar  FOTO"
+    puts "Buscar  FOTO - #{word}"
+
+    if word == "0"
+      return nil
+    end
 
     FlickRaw.api_key="d87f457e6018a2dabe55fae4dd9f3adc"
     FlickRaw.shared_secret="6f33c141e4bfc959"
 
 		list   = flickr.photos.search(:sort => "relevance", :text => word)
 
-    puts list.to_json
+    #puts list.to_json
 
-    id     = list[0].id
-    secret = list[0].secret
-    
-    photo = get_photo(id)
+    if list.length > 0
+      id     = list[0].id
+      secret = list[0].secret
+      
+      photo = get_photo(id)
 
-    return photo.color
+      if photo
+        return photo.color
+      else
+        return nil
+      end
+    else
+      return nil
+    end
 	end
 
   def get_photo(id)
+    puts id
 
     model= Photo.find_by(id: id)
     
     if model.nil?
-      sizes = flickr.photos.getSizes :photo_id => id
+      begin
+        sizes = flickr.photos.getSizes :photo_id => id
+      rescue
+        return nil
+      end
       photo = sizes.select { |p| p["label"] == "Medium" }[0]
 
-      puts photo.to_json
+      if photo.nil?
+        photo = sizes[sizes.length-1]
+      end
+      #puts photo.to_json
 
       url = photo["source"]
       i = MiniMagick::Image.open(url)
@@ -46,7 +96,7 @@ module ColorHelper
       model.save
     end
 
-    puts model.to_json
+    #puts model.to_json
 
     return model
   end
@@ -67,7 +117,7 @@ module ColorHelper
       green = (c >> 16) & 255
       red =   (c >> 24) & 255
 
-      puts "r = #{red} - g = #{green} - b = #{blue}"
+      #puts "r = #{red} - g = #{green} - b = #{blue}"
 
       precision = 20
 
@@ -83,18 +133,29 @@ module ColorHelper
       dic[rgb] ||= 0
       dic[rgb] = dic[rgb] + 1
 
-      puts "c = #{c} - r = #{red} - g = #{green} - b = #{blue} - rgb = #{rgb}"
+      #puts "c = #{c} - r = #{red} - g = #{green} - b = #{blue} - rgb = #{rgb}"
     end
 
     c = dic.sort_by {|k,v| v }.last
 
-    puts dic
+    #puts dic
 
-    puts "------------adasd---------"
-    puts c
+    #puts "------------adasd---------"
+    #puts c
 
     return c[0]
 
   end
+
+  def normalize(query)
+    nquery = query.strip
+        nquery = UnicodeUtils.upcase nquery
+        nquery = I18n.transliterate(nquery)
+        nquery = nquery.gsub(/[^a-zA-Z0-9\-]/," ") 
+        nquery = nquery.gsub("-"," ")
+        nquery = nquery.strip
+        return nquery
+  end
+
 
 end
