@@ -19,10 +19,16 @@ module ColorHelper
     w = Word.find_by(word: word)
     
     if w.nil?
-      color = find_color(word)
+      photos = find_photos(word)
       w = Word.new
       w.word = word
-      w.color = color
+      w.photos = photos
+      puts "-------------------------------"
+      puts @gdic
+      puts "-------------------------------"
+      puts @gdic.sort_by {|k,v| v }.last
+      puts "------------------------------- "
+      w.color = @gdic.sort_by {|k,v| v }.last[0].to_s(16)
       w.save
     end
 
@@ -33,7 +39,7 @@ module ColorHelper
     return w
   end
 
-	def find_color(word)
+	def find_photos(word)
     puts "Buscar  FOTO - #{word}"
 
     if word == "0"
@@ -48,16 +54,25 @@ module ColorHelper
     #puts list.to_json
 
     if list.length > 0
-      id     = list[0].id
-      secret = list[0].secret
-      
-      photo = get_photo(id)
+      max = 10
+      max = list.length < max ? list.length-1 : max-1
 
-      if photo
-        return photo.color
-      else
-        return nil
+      photos = []
+      (0..max).each do |i|
+        id     = list[i].id
+        secret = list[i].secret
+        
+        photo = get_photo(id)
+
+        if photo
+          photo.histogram.each do |rgb, v|
+            @gdic[rgb] ||= 0.to_f
+            @gdic[rgb] = @gdic[rgb] + v
+          end
+          photos << {id: photo.id, url: photo.url, color: photo.color}
+        end
       end
+      return photos
     else
       return nil
     end
@@ -79,7 +94,7 @@ module ColorHelper
       if photo.nil?
         photo = sizes[sizes.length-1]
       end
-      #puts photo.to_json
+      puts photo.to_json
 
       url = photo["source"]
       i = MiniMagick::Image.open(url)
@@ -88,11 +103,15 @@ module ColorHelper
 
       p = ChunkyPNG::Image.from_io(StringIO.new(i.to_blob))
 
-      
+      histogram = montecarlo(p)
+      color = histogram.sort_by {|k,v| v }.last
+      color = color[0]
+
       model = Photo.new
       model.id = id
       model.url = url
-      model.color = montecarlo(p).to_s(16)
+      model.color = color.to_s(16)
+      model.histogram = histogram
       model.save
     end
 
@@ -101,6 +120,7 @@ module ColorHelper
     return model
   end
   def montecarlo(photo)
+    @gdic ||= {}
     dic = {}
     (0..999).each do |i| 
       x = rand(photo.width).floor
@@ -117,6 +137,12 @@ module ColorHelper
       green = (c >> 16) & 255
       red =   (c >> 24) & 255
 
+      #brightness = ((red.to_f/255) * 0.299) + ((green.to_f/255) * 0.587) + ((blue.to_f/255) * 0.114)
+      rf = red.to_f/255
+      gf = green.to_f/255
+      bf = blue.to_f/255
+      
+      coloritud = ((rf-gf).abs + (rf-bf).abs + (gf-bf).abs) / 3
       #puts "r = #{red} - g = #{green} - b = #{blue}"
 
       precision = 20
@@ -130,20 +156,18 @@ module ColorHelper
       rgb = (rgb << 8) + green
       rgb = (rgb << 8) + blue
       
-      dic[rgb] ||= 0
-      dic[rgb] = dic[rgb] + 1
+      dic[rgb] ||= 0.to_f
+      dic[rgb] = dic[rgb] + coloritud
+
+      @gdic[rgb] ||= 0.to_f
+      @gdic[rgb] = @gdic[rgb] + coloritud
+
 
       #puts "c = #{c} - r = #{red} - g = #{green} - b = #{blue} - rgb = #{rgb}"
     end
 
-    c = dic.sort_by {|k,v| v }.last
 
-    #puts dic
-
-    #puts "------------adasd---------"
-    #puts c
-
-    return c[0]
+    return dic
 
   end
 
@@ -151,7 +175,7 @@ module ColorHelper
     nquery = query.strip
         nquery = UnicodeUtils.upcase nquery
         nquery = I18n.transliterate(nquery)
-        nquery = nquery.gsub(/[^a-zA-Z0-9\-]/," ") 
+        #nquery = nquery.gsub(/[^a-zA-Z0-9\-]/," ") 
         nquery = nquery.gsub("-"," ")
         nquery = nquery.strip
         return nquery
