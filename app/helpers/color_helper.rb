@@ -16,20 +16,20 @@ module ColorHelper
   end
 
   def find_word(word)
+    @gdic = {}
     w = Word.find_by(word: word)
     
     if w.nil?
       photos = find_photos(word)
-      w = Word.new
-      w.word = word
-      w.photos = photos
-      puts "-------------------------------"
-      puts @gdic
-      puts "-------------------------------"
-      puts @gdic.sort_by {|k,v| v }.last
-      puts "------------------------------- "
-      w.color = @gdic.sort_by {|k,v| v }.last[0].to_s(16)
-      w.save
+        w = Word.new
+        w.word = word
+        w.photos = photos
+        if @gdic.size > 0
+          w.color = @gdic.sort_by {|k,v| v }.last[0].to_i.to_s(16)
+        else
+          w.color = nil
+        end
+        w.save
     end
 
     if w.color.nil?
@@ -54,7 +54,7 @@ module ColorHelper
     #puts list.to_json
 
     if list.length > 0
-      max = 10
+      max = 1
       max = list.length < max ? list.length-1 : max-1
 
       photos = []
@@ -94,8 +94,7 @@ module ColorHelper
       if photo.nil?
         photo = sizes[sizes.length-1]
       end
-      puts photo.to_json
-
+      
       url = photo["source"]
       i = MiniMagick::Image.open(url)
 
@@ -174,7 +173,7 @@ module ColorHelper
   def normalize(query)
     nquery = query.strip
         nquery = UnicodeUtils.upcase nquery
-        nquery = I18n.transliterate(nquery)
+        #nquery = I18n.transliterate(nquery)
         #nquery = nquery.gsub(/[^a-zA-Z0-9\-]/," ") 
         nquery = nquery.gsub("-"," ")
         nquery = nquery.strip

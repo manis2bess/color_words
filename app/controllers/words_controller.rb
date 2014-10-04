@@ -27,7 +27,7 @@ class WordsController < ApplicationController
 		
 		countries = []
 		Country.where(year: year, country: {"$ne" => nil}).each do |c|
-			w = get_words(c.words)
+			w = get_words(c.words[0..5])
 			e = {}
 			e[:country] = c
 			e[:words] = w
@@ -94,8 +94,8 @@ class WordsController < ApplicationController
 	end
 
 	def reset
-		Word.all.delete
-		Photo.all.delete
+	#	Word.all.delete
+	#	Photo.all.delete
 
 		@data = {}
 
