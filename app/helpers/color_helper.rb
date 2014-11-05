@@ -49,7 +49,8 @@ module ColorHelper
     FlickRaw.api_key="d87f457e6018a2dabe55fae4dd9f3adc"
     FlickRaw.shared_secret="6f33c141e4bfc959"
 
-		list   = flickr.photos.search(:sort => "relevance", :text => word)
+    FlickRaw.check_certificate = false
+  	list   = flickr.photos.search(:sort => "relevance", :text => word)
 
     #puts list.to_json
 
@@ -96,6 +97,7 @@ module ColorHelper
       end
       
       url = photo["source"]
+      puts url
       i = MiniMagick::Image.open(url)
 
       i.format('png')

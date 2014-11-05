@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.1.1'
+ruby '1.9.3'
 
 gem 'rails', '3.2.13'
 
@@ -23,11 +23,12 @@ end
 gem 'jquery-rails'
 
 gem "mongoid", "~> 3.1.6"
-gem "flickraw"
+gem "flickraw", :git => 'git://github.com/hanklords/flickraw.git'
 gem "mini_magick"
 gem "chunky_png"
-gem "unirest"
+# gem "unirest"
 gem 'unicode_utils'
+gem 'rest-client'
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'

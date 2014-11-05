@@ -53,13 +53,18 @@ module CountryHelper
 
   def search_words(year, country, page)
     parameters = {ajax:1,geo:country,date:year,cat:"",tn:6*page}
-    response = Unirest.post "http://www.google.com.ar/trends/topcharts/category", parameters: parameters
-    puts response.to_json
-    if response.code == 404
+    #response = Unirest.post "http://www.google.com.ar/trends/topcharts/category", parameters: parameters
+    begin
+      response = RestClient.post("http://www.google.com.ar/trends/topcharts/category", parameters)
+    rescue => e
       return {"data" => "error"}
-    else
-      return response.body
     end
+    puts response.to_json
+    #if response.code == 404
+     # return {"data" => "error"}
+    #else
+      return JSON.parse(response)
+    #end
   end
 
 end

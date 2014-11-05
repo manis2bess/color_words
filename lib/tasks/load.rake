@@ -15,6 +15,8 @@ namespace :load do
   desc "load country word"
   task :load_country_words => :environment do
   	include ColorHelper
+    OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
   	Country.where(year: 2013).each do |c|
   		puts "COUNTRY - #{c.country}"
   		c.words[0..5].each do |w|

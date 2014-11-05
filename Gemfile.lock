@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/hanklords/flickraw.git
+  revision: e9964ba7f594cd45631171587c8404c14b8e1cc6
+  specs:
+    flickraw (0.9.8)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -28,7 +34,6 @@ GEM
     activesupport (3.2.13)
       i18n (= 0.6.1)
       multi_json (~> 1.0)
-    addressable (2.3.6)
     arel (3.0.3)
     builder (3.0.4)
     chunky_png (1.3.1)
@@ -41,7 +46,6 @@ GEM
     coffee-script-source (1.7.0)
     erubis (2.7.0)
     execjs (2.2.0)
-    flickraw (0.9.8)
     hike (1.2.3)
     i18n (0.6.1)
     journey (1.0.4)
@@ -112,23 +116,20 @@ GEM
       execjs (>= 0.3.0)
       json (>= 1.8.0)
     unicode_utils (1.4.0)
-    unirest (1.1.2)
-      addressable (~> 2.3.5)
-      json (~> 1.8.1)
-      rest-client (~> 1.6.7)
 
 PLATFORMS
   ruby
+  x86-mingw32
 
 DEPENDENCIES
   chunky_png
   coffee-rails (~> 3.2.1)
-  flickraw
+  flickraw!
   jquery-rails
   mini_magick
   mongoid (~> 3.1.6)
   rails (= 3.2.13)
+  rest-client
   sass-rails (~> 3.2.3)
   uglifier (>= 1.0.3)
   unicode_utils
-  unirest
